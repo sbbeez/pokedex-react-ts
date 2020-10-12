@@ -11,11 +11,18 @@ export interface IState {
 }
 
 const App = (props: {}) => {
-  const [pokemonList, setPokemonList] = useState<IState>({
-    loading: true,
-    error: false,
-    data: {}
-  });
+  const getInitialState = () => {
+    if (localStorage.getItem("@appState")) {
+      return JSON.parse(localStorage.getItem("@appState"));
+    }
+    return {
+      loading: true,
+      error: false,
+      data: {}
+    };
+  };
+
+  const [pokemonList, setPokemonList] = useState<IState>(getInitialState());
   const [showAddPokemonModal, setShowAddPokemonModal] = useState<boolean>(
     false
   );
@@ -32,6 +39,14 @@ const App = (props: {}) => {
       error: false,
       data: { ...newPokemonList }
     });
+    localStorage.setItem(
+      "@appState",
+      JSON.stringify({
+        loading: false,
+        error: false,
+        data: { ...newPokemonList }
+      })
+    );
   };
 
   const onDeletePokemon = (index: number) => {
@@ -42,6 +57,14 @@ const App = (props: {}) => {
       error: false,
       data: { ...pokemonListData }
     });
+    localStorage.setItem(
+      "@appState",
+      JSON.stringify({
+        loading: false,
+        error: false,
+        data: { ...pokemonListData }
+      })
+    );
   };
 
   const onApiError = err => {
@@ -58,13 +81,23 @@ const App = (props: {}) => {
       error: false,
       data
     });
+    localStorage.setItem(
+      "@appState",
+      JSON.stringify({
+        loading: false,
+        error: false,
+        data
+      })
+    );
   };
 
   useEffect(() => {
-    fetch("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=151")
-      .then(response => response.json())
-      .then(onApiSuccess)
-      .catch(onApiError);
+    if (!localStorage.getItem("@appState")) {
+      fetch("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=151")
+        .then(response => response.json())
+        .then(onApiSuccess)
+        .catch(onApiError);
+    }
   }, []);
 
   const rowRenderer = (pokemon, index) => (
